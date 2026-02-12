@@ -32,7 +32,41 @@ Write SQL (Postgres) `CREATE` statements to create the following schema. Be sure
 
 **Answer box:**
 ```sql
--- Create tables here
+-- The tables which are referenced should be created first
+CREATE TABLE Users (
+  -- Can also be SERIAL type, but I use INTEGER as noted in the question
+  id INTEGER PRIMARY KEY
+);
+
+-- for subsequent tables, i use lowercase names as per the image in the question
+-- (which isnt consistent with the Users table, but i shall follow the image)
+CREATE TABLE playlists (
+  id INTEGER PRIMARY KEY,
+  -- every playlist must be created by a user
+  user_id INTEGER NOT NULL 
+    REFERENCES Users(id) 
+    ON DELETE CASCADE,
+  -- eveery playlist must have a name
+  name TEXT NOT NULL
+);
+
+CREATE TABLE songs (
+  id INTEGER PRIMARY KEY,
+  -- every song must have title, artist and duration
+  title TEXT NOT NULL,
+  artist TEXT NOT NULL,
+  duration INTERVAL NOT NULL
+);
+
+CREATE TABLE playlist_songs (
+  playlist_id INTEGER NOT NULL 
+    REFERENCES playlists(id)
+    ON DELETE CASCADE,
+  song_id INTEGER NOT NULL 
+    REFERENCES songs(id)
+    ON DELETE CASCADE,
+  PRIMARY KEY (playlist_id, song_id)
+);
 ```
 
 ### b)
@@ -47,5 +81,15 @@ Using the above schema, write an SQL `SELECT` query to return all songs in a pla
 
 **Answer box:**
 ```sql
--- Write query here
+-- go to playlist_songs and look for matching playlist_id, then go to songs and get song infos  
+SELECT 
+  songs.id,
+  playlist_songs.playlist.id,
+  songs.title,
+  songs.artist,
+  songs.duration
+FROM songs
+JOIN playlist_songs
+ON playlist_songs.song_id = songs.id
+WHERE playlist_songs.playlist_id = 676767;
 ```
