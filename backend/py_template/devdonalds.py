@@ -28,7 +28,7 @@ class Ingredient(CookbookEntry):
 app = Flask(__name__)
 
 # Store your recipes here!
-cookbook = None
+cookbook = {}
 
 # Task 1 helper (don't touch)
 @app.route("/parse", methods=['POST'])
@@ -55,10 +55,100 @@ def parse_handwriting(recipeName: str) -> Union[str | None]:
 
 # [TASK 2] ====================================================================
 # Endpoint that adds a CookbookEntry to your magical cookbook
+
+def isRecipeValid(entry):
+	requiredItems = entry.get('requiredItems')
+
+	# all recipes must have requiredItems of type list
+	if not requiredItems or type(requiredItems) != list:
+		return False
+	
+	# keep track of the names of items that have been seen
+	nameSet = set()
+
+	# requiredItems is iterable because it's a list
+	for item in requiredItems:
+		# each item must have name as a str
+		name = item.get('name')
+		if not name or type(name) != str:
+			return False 
+
+		elif name in nameSet:
+			# cant have repeated items in the same entry. just have one item with a higher quantity
+			return False
+		
+		# each item must have quantity as an int
+		quantity = item.get('quantity')
+		if not quantity or type(quantity) != int:
+			return False
+
+		elif quantity <= 0:
+			# quantity must be a positive integer
+			return False
+
+		# add to nameSet to keep track of existing names
+		nameSet.add(name)
+
+	# if all items are valid then the recipe is also valid
+	return True
+
+def isIngredientValid(entry):
+	# this function is much simpler as there are fewer chekcs
+	cookTime = entry.get('cookTime')
+	if not cookTime or type(cookTime) != int:
+		return False
+
+	elif cookTime < 0:
+		# cannot time travel
+		return False
+
+	return True
+
 @app.route('/entry', methods=['POST'])
 def create_entry():
-	# TODO: implement me
-	return 'not implemented', 500
+	# HELLO! this was written with some assumptions of common sense, to hopefully avoid human error
+	# from whoever is making the post request. this could include quantity having to be a +ve int only,
+	# or no repeated requiredItems (just have one requiredItem with a higher quantity)
+
+	entry = request.json
+
+	# every entry must have a name
+	entryName = entry.get('name')
+	if not entryName:
+		return 'name not found', 400
+
+	elif type(entryName) != str:
+		# name must be a str
+		return 'name must be a str', 400
+
+	elif entryName in cookbook:
+		# don't allow adding an entry already present in the cookbook
+		return 'entry already exists in cookbook', 400
+	# every entry must have a type
+	entryType = entry.get('type')
+	if not entryType:
+		return 'type not found', 400
+	
+	elif type(entryType) != str:
+		# type must be a str
+		return 'type must be a str', 400
+
+	# depending on entryType, handle additional fields
+	if entryType == 'recipe':
+		if not isRecipeValid(entry):
+			return 'invalid recipe', 400
+
+	elif entryType == 'ingredient': 
+		if not isIngredientValid(entry):
+			return 'invalid ingredient', 400
+
+	else:
+		return 'invalid type', 400
+
+	# add to cookbook
+	cookbook[entryName] = entry
+	
+	return 'success', 200
 
 
 # [TASK 3] ====================================================================

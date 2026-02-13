@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 pub async fn process_data(Json(request): Json<DataRequest>) -> impl IntoResponse {
     // Calculate sums and return response
 
+    // I LOVE RUST! TAKE 6991 IF YOU HAVENT!
+
     let mut string_len = 0;
     let mut int_sum = 0;
 
