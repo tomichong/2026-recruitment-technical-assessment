@@ -1,0 +1,7 @@
+[global]
+server_name = "tinkletown.org"
+database_path = "/var/lib/tuwunel"
+database_backend = "rocksdb"
+port = 8008
+allow_registration = true
+yes_i_am_very_very_sure_i_want_an_open_registration_server_prone_to_abuse = true
